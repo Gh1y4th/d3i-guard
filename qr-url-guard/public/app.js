@@ -1,5 +1,3 @@
-// Base URL of your Render API service, e.g. "https://qr-url-guard.onrender.com"
-// Leave as "" if the dashboard is served from the same origin as the API.
 const API_BASE = window.QR_GUARD_API_BASE || "";
 
 const form = document.getElementById("scan-form");
@@ -9,6 +7,28 @@ const scanBtn = document.getElementById("scan-btn");
 const scanStatus = document.getElementById("scan-status");
 const resultPanel = document.getElementById("result-panel");
 const historyBody = document.getElementById("history-body");
+const historyEmpty = document.getElementById("history-empty");
+
+const video = document.getElementById("qr-video");
+const canvas = document.getElementById("qr-canvas");
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
+const cameraToggleBtn = document.getElementById("camera-toggle");
+const cameraState = document.getElementById("camera-state");
+const cameraPlaceholder = document.getElementById("camera-placeholder");
+const scanFrame = document.querySelector(".scan-frame");
+
+let stream = null;
+let rafId = null;
+let lastDecodedUrl = null;
+let lastDecodedAt = 0;
+
+/* ---------------- helpers ---------------- */
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
 
 function verdictBadge(verdict) {
   return `<span class="verdict-badge verdict-${verdict}">${verdict}</span>`;
@@ -22,12 +42,6 @@ function renderCategory(title, items) {
     .join("");
   if (!lis) return "";
   return `<div class="category-block"><div class="category-title">${title}</div><ul>${lis}</ul></div>`;
-}
-
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 function renderResult(data) {
@@ -53,7 +67,10 @@ function renderResult(data) {
     ${shot}
   `;
   resultPanel.classList.remove("hidden");
+  resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
+
+/* ---------------- scanning (API) ---------------- */
 
 async function runScan(url, deep) {
   scanBtn.disabled = true;
@@ -87,6 +104,12 @@ async function loadHistory() {
   try {
     const res = await fetch(`${API_BASE}/api/history`);
     const rows = await res.json();
+    if (!rows || rows.length === 0) {
+      historyBody.innerHTML = "";
+      historyEmpty.classList.remove("hidden");
+      return;
+    }
+    historyEmpty.classList.add("hidden");
     historyBody.innerHTML = rows
       .map(
         (r) => `
@@ -118,6 +141,89 @@ form.addEventListener("submit", (e) => {
   const url = urlInput.value.trim();
   if (!url) return;
   runScan(url, deepToggle.checked);
+});
+
+/* ---------------- camera QR scanning ---------------- */
+
+function setCameraState(text, live) {
+  cameraState.textContent = text;
+  cameraState.className = live ? "pill pill-live" : "pill pill-muted";
+}
+
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+    });
+  } catch (err) {
+    scanStatus.textContent = `Camera access failed: ${err.message}`;
+    return;
+  }
+
+  video.srcObject = stream;
+  await video.play();
+  video.classList.add("active");
+  cameraPlaceholder.classList.add("hidden");
+  scanFrame.classList.add("active");
+  setCameraState("Scanning…", true);
+  cameraToggleBtn.textContent = "Stop Camera";
+
+  tick();
+}
+
+function stopCamera() {
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  if (stream) {
+    stream.getTracks().forEach((t) => t.stop());
+    stream = null;
+  }
+  video.classList.remove("active");
+  cameraPlaceholder.classList.remove("hidden");
+  scanFrame.classList.remove("active", "hit");
+  setCameraState("Camera off", false);
+  cameraToggleBtn.textContent = "Start Camera";
+}
+
+function tick() {
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: "dontInvert",
+    });
+
+    if (code && code.data) {
+      handleDecoded(code.data);
+    }
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+function handleDecoded(data) {
+  const now = Date.now();
+  // Debounce: ignore repeat reads of the same code within 8s so we don't
+  // spam the API while the camera holds steady on the same QR.
+  if (data === lastDecodedUrl && now - lastDecodedAt < 8000) return;
+  lastDecodedUrl = data;
+  lastDecodedAt = now;
+
+  scanFrame.classList.add("hit");
+  setTimeout(() => scanFrame.classList.remove("hit"), 600);
+
+  urlInput.value = data;
+  setCameraState("Code found", true);
+  runScan(data, deepToggle.checked);
+}
+
+cameraToggleBtn.addEventListener("click", () => {
+  if (stream) {
+    stopCamera();
+  } else {
+    startCamera();
+  }
 });
 
 loadHistory();
