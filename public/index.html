@@ -1,223 +1,92 @@
-const API_BASE = window.QR_GUARD_API_BASE || "";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QR Guard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav id="topbar">
+    <div id="logo"><span class="g">QR</span><span class="dot"></span>Guard</div>
+    <div class="tb-sep"></div>
+    <span class="tb-tag">link safety scanner</span>
+  </nav>
 
-const form = document.getElementById("scan-form");
-const urlInput = document.getElementById("url-input");
-const deepToggle = document.getElementById("deep-toggle");
-const scanBtn = document.getElementById("scan-btn");
-const scanStatus = document.getElementById("scan-status");
-const resultPanel = document.getElementById("result-panel");
-const historyBody = document.getElementById("history-body");
-const historyEmpty = document.getElementById("history-empty");
+  <main id="shell">
 
-const video = document.getElementById("qr-video");
-const canvas = document.getElementById("qr-canvas");
-const ctx = canvas.getContext("2d", { willReadFrequently: true });
-const cameraToggleBtn = document.getElementById("camera-toggle");
-const cameraState = document.getElementById("camera-state");
-const cameraPlaceholder = document.getElementById("camera-placeholder");
-const scanFrame = document.querySelector(".scan-frame");
+    <section class="hero">
+      <h1>Know before you <span>tap</span>.</h1>
+      <p>Scan a QR with your camera, or paste a link — we check phishing lists, TLS, domain age, redirects, and brand spoofing before you open it.</p>
+    </section>
 
-let stream = null;
-let rafId = null;
-let lastDecodedUrl = null;
-let lastDecodedAt = 0;
-
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-function verdictBadge(verdict) {
-  return `<span class="verdict-badge verdict-${verdict}">${verdict}</span>`;
-}
-
-function renderCategory(title, items) {
-  if (!items || items.length === 0) return "";
-  const lis = items
-    .filter((f) => f.category === title)
-    .map((f) => `<li>${escapeHtml(f.finding)}</li>`)
-    .join("");
-  if (!lis) return "";
-  return `<div class="category-block"><div class="category-title">${title}</div><ul>${lis}</ul></div>`;
-}
-
-function renderResult(data) {
-  const categories = [
-    "Google Safe Browsing", "VirusTotal", "Page analysis", "Brand impersonation",
-    "URL structure", "TLS/SSL", "Redirects", "Domain age",
-  ];
-
-  const screenshot = data.details?.screenshot;
-  const shot = screenshot?.screenshotBase64
-    ? `<img class="screenshot-preview" src="${screenshot.screenshotBase64}" alt="Landing page screenshot" />`
-    : "";
-
-  resultPanel.innerHTML = `
-    <div class="result-head">
-      <div>
-        ${verdictBadge(data.verdict)}
-        <div class="result-url">${escapeHtml(data.url)}</div>
+    <section class="panel camera-panel">
+      <div class="panel-head">
+        <h2><i class="fa-solid fa-camera"></i> Scan with camera</h2>
+        <span class="status-pill" id="camera-state">Camera off</span>
       </div>
-      <div class="score-num">${data.score}/100</div>
-    </div>
-    ${categories.map((c) => renderCategory(c, data.findings)).join("")}
-    ${shot}
-  `;
-  resultPanel.classList.remove("hidden");
-  resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
 
-async function runScan(url, deep) {
-  scanBtn.disabled = true;
-  scanStatus.textContent = deep
-    ? "Scanning — checking reputation, TLS, domain age, redirects, and rendering the page…"
-    : "Scanning…";
-  resultPanel.classList.add("hidden");
+      <div class="camera-stage" id="camera-stage">
+        <video id="qr-video" playsinline muted></video>
+        <canvas id="qr-canvas" class="hidden"></canvas>
+        <div class="scan-frame"></div>
+        <div class="camera-placeholder" id="camera-placeholder">
+          <i class="fa-solid fa-qrcode"></i>
+          <p>Tap start to scan a QR code live</p>
+        </div>
+      </div>
 
-  try {
-    const res = await fetch(`${API_BASE}/api/scan`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, deep }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      scanStatus.textContent = data.error || "Scan failed.";
-      return;
-    }
-    scanStatus.textContent = "";
-    renderResult(data);
-    loadHistory();
-  } catch (err) {
-    scanStatus.textContent = `Request failed: ${err.message}`;
-  } finally {
-    scanBtn.disabled = false;
-  }
-}
+      <button id="camera-toggle" class="tb-btn primary full"><i class="fa-solid fa-video"></i> Start Camera</button>
+    </section>
 
-async function loadHistory() {
-  try {
-    const res = await fetch(`${API_BASE}/api/history`);
-    const rows = await res.json();
-    if (!rows || rows.length === 0) {
-      historyBody.innerHTML = "";
-      historyEmpty.classList.remove("hidden");
-      return;
-    }
-    historyEmpty.classList.add("hidden");
-    historyBody.innerHTML = rows
-      .map(
-        (r) => `
-      <tr class="history-row" data-id="${r.id}">
-        <td>${new Date(r.created_at).toLocaleString()}</td>
-        <td class="url-cell">${escapeHtml(r.url)}</td>
-        <td>${verdictBadge(r.verdict)}</td>
-        <td>${r.score}</td>
-      </tr>`
-      )
-      .join("");
+    <section class="panel">
+      <div class="panel-head">
+        <h2><i class="fa-solid fa-link"></i> Or paste a link</h2>
+      </div>
+      <form id="scan-form">
+        <input id="url-input" type="text" placeholder="https://example.com/suspicious-link" />
+        <label class="deep-toggle">
+          <input type="checkbox" id="deep-toggle" checked />
+          Deep page analysis <span class="hint">(screenshot + credential-harvest check)</span>
+        </label>
+        <button type="submit" id="scan-btn" class="tb-btn primary full"><i class="fa-solid fa-shield-halved"></i> Check URL</button>
+      </form>
+      <div id="scan-status"></div>
+    </section>
 
-    document.querySelectorAll(".history-row").forEach((row) => {
-      row.addEventListener("click", async () => {
-        const id = row.getAttribute("data-id");
-        const res = await fetch(`${API_BASE}/api/history/${id}`);
-        const data = await res.json();
-        renderResult(data);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-    });
-  } catch (err) {
-    console.error("Failed to load history", err);
-  }
-}
+    <section id="result-panel" class="panel hidden"></section>
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const url = urlInput.value.trim();
-  if (!url) return;
-  runScan(url, deepToggle.checked);
-});
+    <section class="panel">
+      <div class="panel-head">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Scan History</h2>
+      </div>
+      <div class="table-wrap">
+        <table id="history-table">
+          <thead>
+            <tr><th>Time</th><th>URL</th><th>Verdict</th><th>Score</th></tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
+        <p class="empty-state hidden" id="history-empty">No scans yet — check a link above to get started.</p>
+      </div>
+    </section>
 
-function setCameraState(text, live) {
-  cameraState.textContent = text;
-  cameraState.classList.toggle("live", live);
-}
+  </main>
 
-async function startCamera() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-    });
-  } catch (err) {
-    scanStatus.textContent = `Camera access failed: ${err.message}`;
-    return;
-  }
+  <footer class="site-footer">
+    <p>QR Guard checks link reputation and structure — it never attacks or probes the sites it scans.</p>
+  </footer>
 
-  video.srcObject = stream;
-  await video.play();
-  video.classList.add("active");
-  cameraPlaceholder.classList.add("hidden");
-  scanFrame.classList.add("active");
-  setCameraState("Scanning…", true);
-  cameraToggleBtn.innerHTML = '<i class="fa-solid fa-video-slash"></i> Stop Camera';
-  cameraToggleBtn.classList.add("stopping");
-
-  tick();
-}
-
-function stopCamera() {
-  if (rafId) cancelAnimationFrame(rafId);
-  rafId = null;
-  if (stream) {
-    stream.getTracks().forEach((t) => t.stop());
-    stream = null;
-  }
-  video.classList.remove("active");
-  cameraPlaceholder.classList.remove("hidden");
-  scanFrame.classList.remove("active", "hit");
-  setCameraState("Camera off", false);
-  cameraToggleBtn.innerHTML = '<i class="fa-solid fa-video"></i> Start Camera';
-  cameraToggleBtn.classList.remove("stopping");
-}
-
-function tick() {
-  if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: "dontInvert",
-    });
-
-    if (code && code.data) {
-      handleDecoded(code.data);
-    }
-  }
-  rafId = requestAnimationFrame(tick);
-}
-
-function handleDecoded(data) {
-  const now = Date.now();
-  if (data === lastDecodedUrl && now - lastDecodedAt < 8000) return;
-  lastDecodedUrl = data;
-  lastDecodedAt = now;
-
-  scanFrame.classList.add("hit");
-  setTimeout(() => scanFrame.classList.remove("hit"), 600);
-
-  urlInput.value = data;
-  setCameraState("Code found", true);
-  runScan(data, deepToggle.checked);
-}
-
-cameraToggleBtn.addEventListener("click", () => {
-  if (stream) {
-    stopCamera();
-  } else {
-    startCamera();
-  }
-});
-
-loadHistory();
+  <script>
+    // Set this to your deployed Render API URL before deploying, e.g.:
+    // window.QR_GUARD_API_BASE = "https://qr-url-guard.onrender.com";
+    window.QR_GUARD_API_BASE = "";
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
