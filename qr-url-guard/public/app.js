@@ -147,7 +147,7 @@ form.addEventListener("submit", (e) => {
 
 function setCameraState(text, live) {
   cameraState.textContent = text;
-  cameraState.className = live ? "pill pill-live" : "pill pill-muted";
+  cameraState.classList.toggle("live", live);
 }
 
 async function startCamera() {
@@ -166,7 +166,8 @@ async function startCamera() {
   cameraPlaceholder.classList.add("hidden");
   scanFrame.classList.add("active");
   setCameraState("Scanning…", true);
-  cameraToggleBtn.textContent = "Stop Camera";
+  cameraToggleBtn.innerHTML = '<i class="fa-solid fa-video-slash"></i> Stop Camera';
+  cameraToggleBtn.classList.add("stopping");
 
   tick();
 }
@@ -182,7 +183,8 @@ function stopCamera() {
   cameraPlaceholder.classList.remove("hidden");
   scanFrame.classList.remove("active", "hit");
   setCameraState("Camera off", false);
-  cameraToggleBtn.textContent = "Start Camera";
+  cameraToggleBtn.innerHTML = '<i class="fa-solid fa-video"></i> Start Camera';
+  cameraToggleBtn.classList.remove("stopping");
 }
 
 function tick() {

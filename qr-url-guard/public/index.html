@@ -3,34 +3,31 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>QR Guard — Scan Safely</title>
+<title>QR Guard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <nav class="topbar">
-    <div class="brand">
-      <span class="brand-mark">QR</span>
-      <span class="brand-name">Guard</span>
-    </div>
-    <div class="topbar-links">
-      <a href="#scan" class="active">Scan</a>
-      <a href="#history">History</a>
-    </div>
+  <nav id="topbar">
+    <div id="logo"><span class="g">QR</span><span class="dot"></span>Guard</div>
+    <div class="tb-sep"></div>
+    <span class="tb-tag">link safety scanner</span>
   </nav>
 
-  <header class="hero">
-    <h1>Know before you tap.</h1>
-    <p>Scan a QR code with your camera, or paste a link — we check phishing lists, TLS, domain age, redirects, and brand spoofing before you ever open it.</p>
-  </header>
+  <main id="shell">
 
-  <main class="wrap" id="scan">
+    <section class="hero">
+      <h1>Know before you <span>tap</span>.</h1>
+      <p>Scan a QR with your camera, or paste a link — we check phishing lists, TLS, domain age, redirects, and brand spoofing before you open it.</p>
+    </section>
 
     <section class="panel camera-panel">
       <div class="panel-head">
-        <h2>Scan with camera</h2>
-        <span class="pill pill-muted" id="camera-state">Camera off</span>
+        <h2><i class="fa-solid fa-camera"></i> Scan with camera</h2>
+        <span class="status-pill" id="camera-state">Camera off</span>
       </div>
 
       <div class="camera-stage" id="camera-stage">
@@ -38,36 +35,34 @@
         <canvas id="qr-canvas" class="hidden"></canvas>
         <div class="scan-frame"></div>
         <div class="camera-placeholder" id="camera-placeholder">
-          <div class="placeholder-icon">⌁</div>
+          <i class="fa-solid fa-qrcode"></i>
           <p>Tap start to scan a QR code live</p>
         </div>
       </div>
 
-      <div class="camera-controls">
-        <button id="camera-toggle" class="btn btn-primary">Start Camera</button>
-      </div>
+      <button id="camera-toggle" class="tb-btn primary full"><i class="fa-solid fa-video"></i> Start Camera</button>
     </section>
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Or paste a link</h2>
+        <h2><i class="fa-solid fa-link"></i> Or paste a link</h2>
       </div>
       <form id="scan-form">
         <input id="url-input" type="text" placeholder="https://example.com/suspicious-link" />
         <label class="deep-toggle">
           <input type="checkbox" id="deep-toggle" checked />
-          Deep page analysis <span class="hint">(screenshot + credential-harvest check — a bit slower)</span>
+          Deep page analysis <span class="hint">(screenshot + credential-harvest check)</span>
         </label>
-        <button type="submit" id="scan-btn" class="btn btn-primary btn-full">Check URL</button>
+        <button type="submit" id="scan-btn" class="tb-btn primary full"><i class="fa-solid fa-shield-halved"></i> Check URL</button>
       </form>
       <div id="scan-status"></div>
     </section>
 
     <section id="result-panel" class="panel hidden"></section>
 
-    <section class="panel" id="history">
+    <section class="panel">
       <div class="panel-head">
-        <h2>Scan History</h2>
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Scan History</h2>
       </div>
       <div class="table-wrap">
         <table id="history-table">
