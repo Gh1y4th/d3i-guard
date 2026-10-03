@@ -1,5 +1,15 @@
-const whois = require("whois-json");
 const psl = require("psl");
+
+// whois-json ships as an ESM-only module in recent versions, so it can't be
+// loaded with a plain require() from this CommonJS project. A dynamic
+// import() works from CommonJS and gives us the same function.
+let whoisPromise = null;
+function loadWhois() {
+  if (!whoisPromise) {
+    whoisPromise = import("whois-json").then((mod) => mod.default || mod);
+  }
+  return whoisPromise;
+}
 
 async function checkDomainInfo(hostname, timeoutMs = 8000) {
   const findings = [];
@@ -9,6 +19,7 @@ async function checkDomainInfo(hostname, timeoutMs = 8000) {
   const registrableDomain = parsedDomain.domain || hostname;
 
   try {
+    const whois = await loadWhois();
     const data = await Promise.race([
       whois(registrableDomain),
       new Promise((_, reject) => setTimeout(() => reject(new Error("WHOIS timeout")), timeoutMs)),
