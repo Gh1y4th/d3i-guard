@@ -22,8 +22,6 @@ let rafId = null;
 let lastDecodedUrl = null;
 let lastDecodedAt = 0;
 
-/* ---------------- helpers ---------------- */
-
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str;
@@ -69,8 +67,6 @@ function renderResult(data) {
   resultPanel.classList.remove("hidden");
   resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
-
-/* ---------------- scanning (API) ---------------- */
 
 async function runScan(url, deep) {
   scanBtn.disabled = true;
@@ -143,8 +139,6 @@ form.addEventListener("submit", (e) => {
   runScan(url, deepToggle.checked);
 });
 
-/* ---------------- camera QR scanning ---------------- */
-
 function setCameraState(text, live) {
   cameraState.textContent = text;
   cameraState.classList.toggle("live", live);
@@ -206,8 +200,6 @@ function tick() {
 
 function handleDecoded(data) {
   const now = Date.now();
-  // Debounce: ignore repeat reads of the same code within 8s so we don't
-  // spam the API while the camera holds steady on the same QR.
   if (data === lastDecodedUrl && now - lastDecodedAt < 8000) return;
   lastDecodedUrl = data;
   lastDecodedAt = now;
