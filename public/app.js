@@ -44,7 +44,7 @@ function renderCategory(title, items) {
 
 function renderResult(data) {
   const categories = [
-    "Google Safe Browsing", "VirusTotal", "Page analysis", "Brand impersonation",
+    "Google Safe Browsing", "Deep in the unseen", "Page analysis", "Brand impersonation",
     "URL structure", "TLS/SSL", "Redirects", "Domain age",
   ];
 
