@@ -51,11 +51,12 @@ async function traceRedirects(startUrl, maxHops = 8, timeoutMs = 8000) {
   }
 
   if (chain.length > 1) {
-    const startHost = new URL(chain[0].url).hostname;
-    const finalHost = new URL(chain[chain.length - 1].url).hostname;
-    if (startHost !== finalHost) {
-      findings.push(`URL redirects across domains: ${startHost} → ${finalHost}.`);
+     const startHostFull = new URL(chain[0].url).hostname;
+    const finalHostFull = new URL(chain[chain.length - 1].url).hostname;
+    if (registrableDomain(startHostFull) !== registrableDomain(finalHostFull)) {
+      findings.push(`URL redirects across domains: ${startHostFull} → ${finalHostFull}.`);
       score += 10;
+    }
     }
     findings.push(`Followed ${chain.length - 1} redirect hop(s) before reaching final destination.`);
   } else {
