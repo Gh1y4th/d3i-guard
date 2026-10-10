@@ -22,17 +22,6 @@ async function initDb() {
       verdict TEXT NOT NULL,
       score INTEGER NOT NULL,
       result JSONB NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    );
-  `);
-    await pool.query(`
-    CREATE TABLE IF NOT EXISTS scans (
-      id SERIAL PRIMARY KEY,
-      url TEXT NOT NULL,
-      hostname TEXT,
-      verdict TEXT NOT NULL,
-      score INTEGER NOT NULL,
-      result JSONB NOT NULL,
       session_id TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
@@ -64,9 +53,6 @@ async function listScans(sessionId, limit = 50) {
 async function getScan(id, sessionId) {
   if (!pool) return null;
   const { rows } = await pool.query(`SELECT * FROM scans WHERE id = $1 AND session_id = $2`, [id, sessionId]);
-  return rows[0] || null;
-}
-}
   return rows[0] || null;
 }
 
