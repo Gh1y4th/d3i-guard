@@ -23,7 +23,5 @@
   "overrides": {
     "whois": "2.15.0"
   },
-  "optionalDependencies": {
-    "puppeteer": "^22.15.0"
-  }
+ 
 }
