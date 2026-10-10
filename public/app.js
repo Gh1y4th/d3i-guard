@@ -1,5 +1,15 @@
 const API_BASE = window.QR_GUARD_API_BASE || "";
 
+function getSessionId() {
+  let id = localStorage.getItem("qrguard_session_id");
+  if (!id) {
+    id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    localStorage.setItem("qrguard_session_id", id);
+  }
+  return id;
+}
+const SESSION_ID = getSessionId();
+
 const form = document.getElementById("scan-form");
 const urlInput = document.getElementById("url-input");
 const deepToggle = document.getElementById("deep-toggle");
