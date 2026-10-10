@@ -51,8 +51,8 @@ async function captureAndInspect(url, timeoutMs = 15000) {
       );
     });
 
-    const finalHost = new URL(finalUrl).hostname;
-    const startHost = new URL(url).hostname;
+    const finalHost = registrableDomain(new URL(finalUrl).hostname);
+    const startHost = registrableDomain(new URL(url).hostname);
 
     if (hasPasswordField && startHost !== finalHost) {
       findings.push(`Page collects a password after redirecting to a different domain (${startHost} → ${finalHost}) — classic credential-harvesting pattern.`);
