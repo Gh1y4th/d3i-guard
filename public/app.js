@@ -89,10 +89,11 @@ async function runScan(url, deep) {
   resultPanel.classList.add("hidden");
 
   try {
-    const res = await fetch(`${API_BASE}/api/scan`, {
+       const res = await fetch(`${API_BASE}/api/scan`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Session-Id": SESSION_ID },
       body: JSON.stringify({ url, deep }),
+  
     });
     const data = await res.json();
     if (!res.ok) {
