@@ -4,7 +4,12 @@ try {
 } catch (e) {
   puppeteer = null;
 }
+const psl = require("psl");
 
+function registrableDomain(hostname) {
+  const parsed = psl.parse(hostname);
+  return parsed.domain || hostname;
+}
 async function captureAndInspect(url, timeoutMs = 15000) {
   if (!puppeteer) {
     return {
