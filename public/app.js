@@ -63,6 +63,9 @@ function renderResult(data) {
     </div>
     ${categories.map((c) => renderCategory(c, data.findings)).join("")}
     ${shot}
+    <a href="${escapeHtml(data.url)}" target="_blank" rel="noopener noreferrer" class="tb-btn primary full open-site-btn">
+      <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Website
+    </a>
   `;
   resultPanel.classList.remove("hidden");
   resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -193,22 +196,22 @@ function tick() {
 
     if (code && code.data) {
       handleDecoded(code.data);
+      return;
     }
   }
   rafId = requestAnimationFrame(tick);
 }
 
 function handleDecoded(data) {
-  const now = Date.now();
-  if (data === lastDecodedUrl && now - lastDecodedAt < 8000) return;
   lastDecodedUrl = data;
-  lastDecodedAt = now;
+  lastDecodedAt = Date.now();
 
   scanFrame.classList.add("hit");
-  setTimeout(() => scanFrame.classList.remove("hit"), 600);
-
   urlInput.value = data;
   setCameraState("Code found", true);
+
+  stopCamera();
+
   runScan(data, deepToggle.checked);
 }
 
