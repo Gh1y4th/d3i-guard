@@ -135,11 +135,10 @@ async function loadHistory() {
     document.querySelectorAll(".history-row").forEach((row) => {
       row.addEventListener("click", async () => {
         const id = row.getAttribute("data-id");
-        const res = await fetch(`${API_BASE}/api/history/${id}`);
-        const data = await res.json();
-        renderResult(data);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
+         const res = await fetch(`${API_BASE}/api/history`, {
+      headers: { "X-Session-Id": SESSION_ID },
+    });
+    const rows = await res.json();
     });
   } catch (err) {
     console.error("Failed to load history", err);
