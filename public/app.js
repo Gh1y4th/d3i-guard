@@ -89,11 +89,10 @@ async function runScan(url, deep) {
   resultPanel.classList.add("hidden");
 
   try {
-       const res = await fetch(`${API_BASE}/api/scan`, {
+    const res = await fetch(`${API_BASE}/api/scan`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Session-Id": SESSION_ID },
       body: JSON.stringify({ url, deep }),
-  
     });
     const data = await res.json();
     if (!res.ok) {
@@ -112,7 +111,9 @@ async function runScan(url, deep) {
 
 async function loadHistory() {
   try {
-    const res = await fetch(`${API_BASE}/api/history`);
+    const res = await fetch(`${API_BASE}/api/history`, {
+      headers: { "X-Session-Id": SESSION_ID },
+    });
     const rows = await res.json();
     if (!rows || rows.length === 0) {
       historyBody.innerHTML = "";
@@ -135,10 +136,13 @@ async function loadHistory() {
     document.querySelectorAll(".history-row").forEach((row) => {
       row.addEventListener("click", async () => {
         const id = row.getAttribute("data-id");
-         const res = await fetch(`${API_BASE}/api/history`, {
-      headers: { "X-Session-Id": SESSION_ID },
-    });
-    const rows = await res.json();
+        const res = await fetch(`${API_BASE}/api/history/${id}`, {
+          headers: { "X-Session-Id": SESSION_ID },
+        });
+        const data = await res.json();
+        renderResult(data);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
     });
   } catch (err) {
     console.error("Failed to load history", err);
