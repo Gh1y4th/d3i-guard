@@ -36,10 +36,14 @@ function checkTyposquat(hostname) {
     if (distance > 0 && distance <= threshold) {
       findings.push(`Hostname "${host}" is suspiciously close to "${brand}" (edit distance ${distance}) — possible typosquat.`);
       score += 30;
-    } else if (host.includes(brand.split(".")[0]) && host !== brand) {
-      // brand name embedded as substring in an unrelated domain, e.g. paypal-secure-login.com
-      findings.push(`Hostname "${host}" embeds the brand name "${brand.split(".")[0]}" without being that domain — common phishing pattern.`);
-      score += 20;
+      } else {
+      const brandPrefix = brand.split(".")[0];
+      // Guard against short/common brand prefixes (e.g. "x" from x.com) matching
+      // as a coincidental substring of ordinary words (e.g. "ex", "flex", "luxury").
+      if (brandPrefix.length >= 4 && host.includes(brandPrefix) && host !== brand) {
+        findings.push(`Hostname "${host}" embeds the brand name "${brandPrefix}" without being that domain — common phishing pattern.`);
+        score += 20;
+      }
     }
   }
 
