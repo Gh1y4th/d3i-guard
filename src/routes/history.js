@@ -25,3 +25,5 @@ router.get("/history/:id", async (req, res) => {
     res.status(500).json({ error: "Could not load scan.", message: err.message });
   }
 });
+
+module.exports = router;
