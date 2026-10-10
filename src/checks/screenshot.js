@@ -6,10 +6,14 @@ try {
 }
 const psl = require("psl");
 
+// Compare registrable domains (e.g. "furniture.com"), not full hostnames, so a
+// login/cart/account subdomain of the SAME site (cart.furniture.com vs
+// www.furniture.com) isn't mistaken for a redirect to a different company.
 function registrableDomain(hostname) {
   const parsed = psl.parse(hostname);
   return parsed.domain || hostname;
 }
+
 async function captureAndInspect(url, timeoutMs = 15000) {
   if (!puppeteer) {
     return {
