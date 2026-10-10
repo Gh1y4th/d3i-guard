@@ -57,13 +57,13 @@ router.post("/scan", async (req, res) => {
       details: results,
       scannedAt: new Date().toISOString(),
     };
-
     const saved = await saveScan({
       url,
       hostname,
       verdict,
       score: totalScore,
       result: responsePayload,
+      sessionId,
     }).catch((e) => {
       console.error("[scan] Failed to persist scan:", e.message);
       return null;
