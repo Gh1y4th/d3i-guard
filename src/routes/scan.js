@@ -14,6 +14,7 @@ const { saveScan } = require("../db");
 
 router.post("/scan", async (req, res) => {
   const { url, deep = true } = req.body || {};
+  const sessionId = req.get("x-session-id") || null;
 
   if (!url || typeof url !== "string") {
     return res.status(400).json({ error: "Body must include a `url` string." });
