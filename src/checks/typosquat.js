@@ -36,7 +36,7 @@ function checkTyposquat(hostname) {
     if (distance > 0 && distance <= threshold) {
       findings.push(`Hostname "${host}" is suspiciously close to "${brand}" (edit distance ${distance}) — possible typosquat.`);
       score += 30;
-      } else {
+    } else {
       const brandPrefix = brand.split(".")[0];
       // Guard against short/common brand prefixes (e.g. "x" from x.com) matching
       // as a coincidental substring of ordinary words (e.g. "ex", "flex", "luxury").
