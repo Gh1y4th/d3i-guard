@@ -57,6 +57,7 @@ router.post("/scan", async (req, res) => {
       details: results,
       scannedAt: new Date().toISOString(),
     };
+
     const saved = await saveScan({
       url,
       hostname,
