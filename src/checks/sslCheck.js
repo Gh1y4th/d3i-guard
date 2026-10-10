@@ -27,7 +27,7 @@ function checkSsl(hostname, port = 443, timeoutMs = 6000) {
             return done({ hasSsl: false, findings, score });
           }
 
-           if (!authorized) {
+          if (!authorized) {
             findings.push(`Certificate is not trusted by standard CAs (${socket.authorizationError || "unknown reason"}).`);
             score += 15;
           }
