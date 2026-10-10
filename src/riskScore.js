@@ -32,6 +32,8 @@ function combine(results) {
     ...(domain?.findings || []).map((f) => ({ category: "Domain age", finding: f })),
     ...(safeBrowsing?.findings || []).map((f) => ({ category: "Google Safe Browsing", finding: f })),
     ...(virusTotal?.findings || []).map((f) => ({ category: "Deep in the unseen", finding: f })),
+    ...(screenshot?.findings || []).map((f) => ({ category: "Page analysis", finding: f })),
+  ];
 
   return { totalScore, verdict, findings: allFindings };
 }
