@@ -1,4 +1,10 @@
 const fetch = require("node-fetch");
+const psl = require("psl");
+
+function registrableDomain(hostname) {
+  const parsed = psl.parse(hostname);
+  return parsed.domain || hostname;
+}
 
 async function traceRedirects(startUrl, maxHops = 8, timeoutMs = 8000) {
   const chain = [];
