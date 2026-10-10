@@ -25,6 +25,17 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS scans (
+      id SERIAL PRIMARY KEY,
+      url TEXT NOT NULL,
+      hostname TEXT,
+      verdict TEXT NOT NULL,
+      score INTEGER NOT NULL,
+      result JSONB NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_scans_created_at ON scans (created_at DESC);`);
   console.log("[db] Ready.");
 }
@@ -50,6 +61,8 @@ async function listScans(limit = 50) {
 async function getScan(id) {
   if (!pool) return null;
   const { rows } = await pool.query(`SELECT * FROM scans WHERE id = $1`, [id]);
+  return rows[0] || null;
+}
   return rows[0] || null;
 }
 
